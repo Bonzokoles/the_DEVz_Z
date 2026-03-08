@@ -1,44 +1,43 @@
-# status.ps1 — Sprawdź status git dla wszystkich projektów
-# Użycie: .\status.ps1 [-BasePath U:\]
-
-param(
-    [string]$BasePath = "U:\"
-)
+# status.ps1  Sprawdz status git wszystkich projektow
+# Uzycie: .\status.ps1
 
 $projects = @(
-    @{ Name = "Zen Browser";   Dir = "WWW_Zen_BRo_wser_org" },
-    @{ Name = "MyBonzo.com";   Dir = "WWW_MyBonzo_com" },
-    @{ Name = "Jimbo77.com";   Dir = "WWW_Jimbo77_com" },
-    @{ Name = "Blog AI";       Dir = "WWW_MYbonzoai_blog" },
-    @{ Name = "Jimbo.org";     Dir = "WWW_Jimbo_ORG" }
+    @{ Name = "Zen Browser";     Path = "U:\WWW_Zen_BRo_wser_org" }
+    @{ Name = "MyBonzo.com";     Path = "U:\WWW_MyBonzo_com" }
+    @{ Name = "Jimbo77.com";     Path = "U:\WWW_Jimbo77_com" }
+    @{ Name = "MyBonzoAI Blog";  Path = "U:\WWW_MYbonzoai_blog" }
+    @{ Name = "Jimbo.org";       Path = "U:\WWW_Jimbo_ORG" }
+    @{ Name = "CHUCK Schematy";  Path = "U:\CHUCK_indst_shemat" }
+    @{ Name = "Agent Zero";      Path = "U:\AGENT_ZERO" }
+    @{ Name = "Config";          Path = "S:\config" }
 )
 
+Write-Host "=== DEVz Workspace Git Status ===" -ForegroundColor Cyan
+Write-Host ""
+
 foreach ($p in $projects) {
-    $path = Join-Path $BasePath $p.Dir
-    Write-Host "`n━━━ $($p.Name) ($($p.Dir)) ━━━" -ForegroundColor Cyan
-    
-    if (-not (Test-Path $path)) {
-        Write-Host "  ❌ Directory not found" -ForegroundColor Red
+    if (-not (Test-Path "$($p.Path)\.git")) {
+        Write-Host "[$($p.Name)]" -ForegroundColor DarkGray -NoNewline
+        Write-Host " - not a git repo" -ForegroundColor DarkGray
         continue
     }
-    
-    Push-Location $path
-    if (Test-Path ".git") {
-        $branch = git branch --show-current 2>$null
-        $status = git status --short 2>$null
-        $remote = git remote get-url origin 2>$null
-        
-        Write-Host "  Branch: $branch" -ForegroundColor White
-        Write-Host "  Remote: $remote" -ForegroundColor DarkGray
-        
-        if ($status) {
-            Write-Host "  Changes:" -ForegroundColor Yellow
-            $status | ForEach-Object { Write-Host "    $_" -ForegroundColor Yellow }
-        } else {
-            Write-Host "  ✅ Clean" -ForegroundColor Green
-        }
-    } else {
-        Write-Host "  ⚠ Not a git repo" -ForegroundColor DarkYellow
-    }
+
+    Push-Location $p.Path
+    $branch = git branch --show-current 2>$null
+    $remote = git remote get-url origin 2>$null
+    $status = git status --porcelain 2>$null
+    $behind = git rev-list --count HEAD..origin/$branch 2>$null
+    $ahead  = git rev-list --count origin/$branch..HEAD 2>$null
     Pop-Location
+
+    $changes = if ($status) { ($status | Measure-Object).Count } else { 0 }
+    $color = if ($changes -gt 0) { "Yellow" } else { "Green" }
+
+    Write-Host "[$($p.Name)]" -ForegroundColor $color -NoNewline
+    Write-Host " branch: $branch | changes: $changes | ahead: $ahead | behind: $behind" -NoNewline
+    if ($remote) { Write-Host " | remote: $remote" -ForegroundColor DarkGray }
+    else { Write-Host "" }
 }
+
+Write-Host ""
+Write-Host "=== Done ===" -ForegroundColor Cyan
