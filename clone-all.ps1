@@ -1,25 +1,24 @@
-# clone-all.ps1 — Klonuj wszystkie projekty webowe z dysku U:
-# Użycie: .\clone-all.ps1 [-BasePath U:\]
-
-param(
-    [string]$BasePath = "U:\"
-)
+# clone-all.ps1  Klonuj wszystkie glowne projekty na dysk U:
+# Uzycie: .\clone-all.ps1
 
 $repos = @(
-    @{ Repo = "zen-bro-wser.org";    Dir = "WWW_Zen_BRo_wser_org" },
-    @{ Repo = "luc-de-zen-on";        Dir = "WWW_MyBonzo_com" },
-    @{ Repo = "THE_Jimbo77com_NXT";   Dir = "WWW_Jimbo77_com" },
-    @{ Repo = "my-bonzo-ai-blog";     Dir = "WWW_MYbonzoai_blog" }
+    @{ Repo = "zen-bro-wser.org";    Path = "U:\WWW_Zen_BRo_wser_org" }
+    @{ Repo = "luc-de-zen-on";       Path = "U:\WWW_MyBonzo_com" }
+    @{ Repo = "THE_Jimbo77com_NXT";  Path = "U:\WWW_Jimbo77_com" }
+    @{ Repo = "my-bonzo-ai-blog";    Path = "U:\WWW_MYbonzoai_blog" }
+    @{ Repo = "CHUCK_indst_shemat";  Path = "U:\CHUCK_indst_shemat" }
+    @{ Repo = "DEVz_HUB";           Path = "U:\The_DEVz_HUB_of_work\DEVz_HUB" }
 )
 
+$base = "https://github.com/Bonzokoles"
+
 foreach ($r in $repos) {
-    $target = Join-Path $BasePath $r.Dir
-    if (Test-Path $target) {
-        Write-Host "⏭ $($r.Dir) already exists, skipping" -ForegroundColor Yellow
+    if (Test-Path $r.Path) {
+        Write-Host "[SKIP] $($r.Path) already exists" -ForegroundColor Yellow
     } else {
-        Write-Host "📥 Cloning $($r.Repo) → $target" -ForegroundColor Cyan
-        git clone "https://github.com/Bonzokoles/$($r.Repo).git" $target
+        Write-Host "[CLONE] $($r.Repo) -> $($r.Path)" -ForegroundColor Cyan
+        git clone "$base/$($r.Repo).git" $r.Path
     }
 }
 
-Write-Host "`n✅ All repos cloned to $BasePath" -ForegroundColor Green
+Write-Host "`nDone! All repos cloned." -ForegroundColor Green
